@@ -63,6 +63,5 @@ websocket_server/
 ## 🤝 **Penutup**  
 Sekian Terima Kasih 
 
-![alt text]((https://tenor.com/rOnjeFNfCJF.gif))
-
+![alt text](https://tenor.com/rOnjeFNfCJF.gif)
 ---
