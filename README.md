@@ -55,8 +55,8 @@ websocket_server/
 ---
 
 ## 👥 **Kontributor**  
-1. **Yobel El'Roy Doloksaribu** – [GitHub](https://github.com/k31p)  
-2. **Micho Dhani Firmansyah** – [GitHub](https://github.com/michdf)
+1. **Yobel El'Roy Doloksaribu** - 231524029 – [GitHub](https://github.com/k31p)  
+2. **Micho Dhani Firmansyah** – 231524013 - [GitHub](https://github.com/michdf)
 
 ---
 
