@@ -1,0 +1,23 @@
+{
+	"books":	[{
+			"id":	3,
+			"title":	"Updated Book",
+			"author":	"Updated Author",
+			"publisher":	"Updated Publisher",
+			"year":	2024,
+			"pages":	300,
+			"edition":	"2nd Edition",
+			"description":	"Updated description",
+			"status":	"Checked Out"
+		}, {
+			"id":	2,
+			"title":	"New Book",
+			"author":	"Author Name",
+			"publisher":	"Publisher Name",
+			"year":	2023,
+			"pages":	250,
+			"edition":	"1st Edition",
+			"description":	"Description here",
+			"status":	"Available"
+		}]
+}

@@ -5,6 +5,12 @@ WebSocket Bookstore Server adalah server berbasis **C** yang menggunakan **WebSo
 
 ---
 
+## 👥 **Kontributor**  
+1. **Yobel El'Roy Doloksaribu** - 231524029 – [GitHub](https://github.com/k31p)  
+2. **Micho Dhani Firmansyah** – 231524013 - [GitHub](https://github.com/michdf)
+
+---
+
 ## 🚀 **Fitur Utama**  
 1. **CRUD Data Buku:**
    - **ADD:** Menambahkan buku baru ke dalam daftar.
@@ -14,49 +20,44 @@ WebSocket Bookstore Server adalah server berbasis **C** yang menggunakan **WebSo
 
 ## 🛠️ **Struktur Proyek**  
 ```
-websocket_server/
-├── main.c              
-├──    
-├──     
-├──      
-├──      
-├──          
-├──          
-├──              
-├──              
-├── 
-└──             
+webserver/
+├── src/                      # Folder utama untuk kode sumber
+│   ├── main.c                # Entry point utama aplikasi
+│   ├── server/               # Modul terkait server
+│   │   ├── server.c          # Implementasi fungsi server (listening, prefork)
+│   │   ├── server.h          # Header file untuk deklarasi fungsi server
+│   │   ├── http/             # Modul terkait HTTP
+│   │   │   ├── http.c        # Implementasi parsing dan handling HTTP request
+│   │   │   ├── http.h        # Header file untuk HTTP
+│   │   │   ├── router.c      # Routing untuk HTTP method (GET, POST, DELETE, UPDATE)
+│   │   │   ├── router.h      # Header untuk fungsi routing
+│   │   └── logging/          # Modul logging
+│   │       ├── logging.c     # Implementasi logging (request dan error log)
+│   │       ├── logging.h     # Header file untuk logging
+│   └── data/                 # Modul untuk manajemen data
+│       ├── data_handler.c    # Implementasi untuk menyimpan dan membaca data dari file
+│       ├── data_handler.h    # Header file untuk manajemen data
+│       ├── models/           # Modul model data
+│           ├── book.c        # Struktur dan operasi terkait data buku
+│           ├── book.h        # Header file untuk data buku
+├── tests/                    # Folder untuk unit testing
+│   ├── test_http.c           # Test untuk HTTP handling
+│   ├── test_server.c         # Test untuk server
+│   ├── test_data_handler.c   # Test untuk data handling
+│   └── test_logging.c        # Test untuk logging
+├── docs/                     # Dokumentasi
+│   ├── design.md             # Desain dan arsitektur sistem
+│   ├── api_docs.md           # Dokumentasi API (GET, POST, DELETE, UPDATE)
+├── config/                   # Konfigurasi server
+│   ├── server_config.h       # Konstanta dan konfigurasi server
+│   ├── routes_config.h       # Daftar endpoint dan handler
+├── logs/                     # Folder untuk menyimpan log
+│   ├── access.log            # Log akses HTTP
+│   ├── error.log             # Log error
+├── Makefile                  # File untuk build dan testing menggunakan Make
+└── README.md                 # Penjelasan singkat tentang proyek
+          
 ```
-
----
-
-## ⚙️ **Cara Menjalankan**  
-
-### 1. **Kompilasi Program**
-
-### 2. **Menjalankan Server**
-
-### 3. **Koneksi Klien**
-
-## 🧪 **Pengujian**
-- **Multi-Klien:** Server diuji untuk menangani lebih dari 6 koneksi klien secara simultan tanpa penurunan performa.
-- **Keandalan:** Server tetap berjalan meskipun satu proses anak mengalami kegagalan.
-- **Keamanan:** Input divalidasi untuk mencegah buffer overflow dan serangan injeksi.
-
----
-
-## 🌟 **Fitur Tambahan (Inovasi)**
-
-  
----
-
-## 🔧 **Debugging dan Perbaikan Bug**
-
----
-
-## 👥 **Kontributor**  
-1. **Yobel El'Roy Doloksaribu** - 231524029 – [GitHub](https://github.com/k31p)  
-2. **Micho Dhani Firmansyah** – 231524013 - [GitHub](https://github.com/michdf)
 
 ---
 
