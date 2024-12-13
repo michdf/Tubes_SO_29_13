@@ -63,20 +63,21 @@ int load_books_from_json(struct Book *books) {
 
     buffer[read_size] = '\0'; // Null-terminate string
 
-    // Jika file kosong, buat JSON default
-    if (read_size == 0) {
+    // Jika file kosong atau parsing gagal, inisialisasi JSON default
+    struct json_object *parsed_json = NULL;
+    if (read_size == 0 || !(parsed_json = json_tokener_parse(buffer))) {
+        fprintf(stderr, "Invalid or empty JSON. Resetting to default.\n");
         const char *empty_json_object = "{\"books\":[]}";
-        if (write(fd, empty_json_object, strlen(empty_json_object)) == -1) {
-            perror("Failed to initialize JSON file");
+        if (ftruncate(fd, 0) == -1 || lseek(fd, 0, SEEK_SET) == -1 || write(fd, empty_json_object, strlen(empty_json_object)) == -1) {
+            perror("Failed to reset JSON file");
             unlock_file(fd);
             close(fd);
             return -1;
         }
-        lseek(fd, 0, SEEK_SET); // Kembali ke awal file setelah write
+        lseek(fd, 0, SEEK_SET); // Kembali ke awal file
+        parsed_json = json_tokener_parse(empty_json_object); // Parsing ulang default JSON
     }
-
     // Parsing JSON
-    struct json_object *parsed_json = json_tokener_parse(buffer);
     if (!parsed_json) {
         fprintf(stderr, "Failed to parse JSON\n");
         unlock_file(fd);
