@@ -39,39 +39,20 @@ int unlock_file(int fd) {
 
 // Fungsi membaca buku dari file JSON
 int load_books_from_json(struct Book *books) {
-    int fd = open(BOOKS_DATA_FILE, O_RDONLY);
-    
+    int fd = open(BOOKS_DATA_FILE, O_RDWR | O_CREAT, 0644);
     if (fd == -1) {
-        if (access(BOOKS_DATA_FILE, F_OK) == -1) {
-            // File does not exist, create an empty JSON array
-            int fd_create = open(BOOKS_DATA_FILE, O_WRONLY | O_CREAT, 0644);
-            if (fd_create == -1) {
-                perror("Failed to create file");
-                return -1;
-            }
-            const char *empty_json_array = "[]";
-            write(fd_create, empty_json_array, strlen(empty_json_array));
-            close(fd_create);
-            // Try opening the file again
-            fd = open(BOOKS_DATA_FILE, O_RDONLY);
-            if (fd == -1) {
-                perror("Failed to open file");
-                return -1;
-            }
-        } else {
-            perror("Failed to open file");
-            return -1;
-        }
+        perror("Failed to open file");
+        return -1;
     }
-    
 
+    // Mengunci file untuk operasi aman
     if (lock_file(fd) == -1) {
         close(fd);
         return -1;
     }
 
     // Membaca isi file
-    char buffer[8192];
+    char buffer[8192] = {0};
     ssize_t read_size = read(fd, buffer, sizeof(buffer) - 1);
     if (read_size == -1) {
         perror("Failed to read file");
@@ -79,19 +60,32 @@ int load_books_from_json(struct Book *books) {
         close(fd);
         return -1;
     }
+
     buffer[read_size] = '\0'; // Null-terminate string
-    close(fd);
-    unlock_file(fd);
+
+    // Jika file kosong, buat JSON default
+    if (read_size == 0) {
+        const char *empty_json_object = "{\"books\":[]}";
+        if (write(fd, empty_json_object, strlen(empty_json_object)) == -1) {
+            perror("Failed to initialize JSON file");
+            unlock_file(fd);
+            close(fd);
+            return -1;
+        }
+        lseek(fd, 0, SEEK_SET); // Kembali ke awal file setelah write
+    }
 
     // Parsing JSON
     struct json_object *parsed_json = json_tokener_parse(buffer);
     if (!parsed_json) {
         fprintf(stderr, "Failed to parse JSON\n");
+        unlock_file(fd);
+        close(fd);
         return -1;
     }
 
     // Loop untuk mengisi struct Book
-    size_t n_books = json_object_array_length(parsed_json);
+    size_t n_books = json_object_array_length(json_object_object_get(parsed_json, "books"));
     for (size_t i = 0; i < n_books; i++) {
         struct json_object *book_obj = json_object_array_get_idx(parsed_json, i);
         books[i].id = json_object_get_int(json_object_object_get(book_obj, "id"));
@@ -106,8 +100,17 @@ int load_books_from_json(struct Book *books) {
     }
 
     json_object_put(parsed_json); // Free memory
+
+    // Melepaskan kunci dan menutup file
+    if (unlock_file(fd) == -1) {
+        close(fd);
+        return -1;
+    }
+
+    close(fd);
     return n_books; // Jumlah buku yang dimuat
 }
+
 
 // Fungsi menyimpan buku ke file JSON
 int save_books_to_json(struct Book *books, int count) {
