@@ -37,8 +37,10 @@ void launch(struct Server *server) {
   int address_length = sizeof(server->address);
   int new_socket;
 
-  struct Route *route = initRoute("/", handleRoot);
-  addRoute(route, "/books/add", handleAddBook);
+  struct Route *route = initRoute("/", handleRoot, GET);
+  addRoute(route, "/books", handleViewBooks, GET);
+  addRoute(route, "/books", handleAddBook, POST);
+  addRoute(route, "/books/:id", handleUpdateBook, PUT);
 
   handle_sigchld(SIGCHLD);
   signal(SIGINT, handle_sigint);
@@ -61,9 +63,18 @@ void launch(struct Server *server) {
 
       struct Route *found = search(route, request.URI);
       if (found != NULL) {
-        found->handler(new_socket, &request);
+        void (*handler)(int, struct HTTPRequest *, char *params) =
+            findHandler(found, request.method);
+        char *params = extract_params(request.URI, found->key);
+        if (handler != NULL) {
+          char *params = extract_params(found->key, request.URI);
+          handler(new_socket, &request, params);
+          free(params);
+        } else {
+          responseError(new_socket, 405, "Method Not Allowed");
+        }
       } else {
-        handleNotFound(new_socket, &request);
+        handleNotFound(new_socket, &request, NULL);
       }
 
       close(new_socket);
