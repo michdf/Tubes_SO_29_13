@@ -40,10 +40,23 @@ int unlock_file(int fd) {
 // Fungsi membaca buku dari file JSON
 int load_books_from_json(struct Book *books) {
     int fd = open(BOOKS_DATA_FILE, O_RDONLY);
+    if (access(BOOKS_DATA_FILE, F_OK) == -1) {
+        // File does not exist, create an empty JSON array
+        int fd_create = open(BOOKS_DATA_FILE, O_WRONLY | O_CREAT, 0644);
+        if (fd_create == -1) {
+            perror("Failed to create file");
+            return -1;
+        }
+        const char *empty_json_array = "[]";
+        write(fd_create, empty_json_array, strlen(empty_json_array));
+        close(fd_create);
+    }
+    
     if (fd == -1) {
         perror("Failed to open file");
         return -1;
     }
+    
 
     if (lock_file(fd) == -1) {
         close(fd);
