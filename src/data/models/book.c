@@ -72,3 +72,23 @@ struct Book create_book(int id, const char *title, const char *author, const cha
 
     return new_book;
 }
+
+// Fungsi konversi struct book ke JSON (struct book dalam bentuk array dan akan diubah ke JSON)
+struct json_object *books_to_json_array(const struct Book **book) {
+    struct json_object *book_array = json_object_new_array();
+    for (int i = 0; book[i] != NULL; i++) {
+        struct json_object *book_obj = json_object_new_object();
+        json_object_object_add(book_obj, "id", json_object_new_int(book[i]->id));
+        json_object_object_add(book_obj, "title", json_object_new_string(book[i]->title));
+        json_object_object_add(book_obj, "author", json_object_new_string(book[i]->author));
+        json_object_object_add(book_obj, "publisher", json_object_new_string(book[i]->publisher));
+        json_object_object_add(book_obj, "year", json_object_new_int(book[i]->year));
+        json_object_object_add(book_obj, "pages", json_object_new_int(book[i]->pages));
+        json_object_object_add(book_obj, "edition", json_object_new_string(book[i]->edition));
+        json_object_object_add(book_obj, "description", json_object_new_string(book[i]->description));
+        json_object_object_add(book_obj, "status", json_object_new_string(book[i]->status));
+        json_object_array_add(book_array, book_obj);
+    }
+
+    return book_array;
+}

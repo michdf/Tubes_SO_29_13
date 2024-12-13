@@ -233,3 +233,14 @@ struct Book *get_book_by_id(int id) {
 
     return NULL; // Buku tidak ditemukan
 }
+
+// Fungsi get_book() untuk dapat semua buku yang ada di dalam file JSON
+struct Book *get_books() {
+    static struct Book books[100]; // Static untuk return pointer
+    int book_count = load_books_from_json(books);
+    if (book_count == -1) {
+        return NULL; // Error loading books
+    }
+
+    return books;
+}

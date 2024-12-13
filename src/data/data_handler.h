@@ -24,4 +24,7 @@ int delete_book(int id);
 // Mendapatkan buku berdasarkan ID
 struct Book *get_book_by_id(int id);
 
+// Mendapatkan semua buku
+struct Book *get_books();
+
 #endif // DATA_HANDLER_H

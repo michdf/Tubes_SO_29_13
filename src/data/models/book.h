@@ -32,4 +32,7 @@ int compare_book_by_id(const struct Book *a, const struct Book *b);
 struct Book create_book(int id, const char *title, const char *author, const char *publisher, 
                         int year, int pages, const char *edition, const char *description, const char *status);
 
+// Fungsi mengkonversi data buku ke JSON
+struct json_object *books_to_json_array(const struct Book **book);
+
 #endif // BOOK_H
