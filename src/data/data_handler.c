@@ -1,138 +1,211 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <cjson/cJSON.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <json-c/json.h>
+#include "data_handler.h"
+#include "../../config/server_config.h"
 
+// Fungsi untuk mengunci file
+int lock_file(int fd) {
+    struct flock lock;
+    lock.l_type = F_WRLCK; // Write lock
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0; // Lock seluruh file
 
-// Struktur Book
-struct Book {
-    int id;
-    char title[100];
-    char author[100];
-    char publisher[100];
-    int year;
-    int pages;
-    char edition[100];
-    char description[1000];
-    char status[100];
-};
-
-// Fungsi untuk membaca file JSON dan memetakan ke array struct Book
-int load_books(const char *filename, struct Book *books, int *count) {
-    FILE *file = fopen(filename, "r");
-    if (!file) {
-        perror("Error opening file");
+    if (fcntl(fd, F_SETLKW, &lock) == -1) {
+        perror("Failed to acquire lock");
         return -1;
     }
-
-    fseek(file, 0, SEEK_END);
-    long length = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    char *data = (char *)malloc(length + 1);
-    fread(data, 1, length, file);
-    fclose(file);
-    data[length] = '\0';
-
-    cJSON *json = cJSON_Parse(data);
-    free(data);
-    if (!json) {
-        printf("Error parsing JSON\n");
-        return -1;
-    }
-
-    cJSON *book_array = cJSON_GetObjectItem(json, "books");
-    if (!cJSON_IsArray(book_array)) {
-        printf("Invalid JSON format\n");
-        cJSON_Delete(json);
-        return -1;
-    }
-
-    int index = 0;
-    cJSON *book_item;
-    cJSON_ArrayForEach(book_item, book_array) {
-        books[index].id = cJSON_GetObjectItem(book_item, "id")->valueint;
-        strcpy(books[index].title, cJSON_GetObjectItem(book_item, "title")->valuestring);
-        strcpy(books[index].author, cJSON_GetObjectItem(book_item, "author")->valuestring);
-        strcpy(books[index].publisher, cJSON_GetObjectItem(book_item, "publisher")->valuestring);
-        books[index].year = cJSON_GetObjectItem(book_item, "year")->valueint;
-        books[index].pages = cJSON_GetObjectItem(book_item, "pages")->valueint;
-        strcpy(books[index].edition, cJSON_GetObjectItem(book_item, "edition")->valuestring);
-        strcpy(books[index].description, cJSON_GetObjectItem(book_item, "description")->valuestring);
-        strcpy(books[index].status, cJSON_GetObjectItem(book_item, "status")->valuestring);
-        index++;
-    }
-
-    *count = index;
-    cJSON_Delete(json);
     return 0;
 }
 
-// Fungsi untuk menyimpan array struct Book ke file JSON
-void save_books(const char *filename, struct Book *books, int count) {
-    cJSON *json = cJSON_CreateObject();
-    cJSON *book_array = cJSON_CreateArray();
+// Fungsi untuk membuka kunci file
+int unlock_file(int fd) {
+    struct flock lock;
+    lock.l_type = F_UNLCK; // Unlock
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
 
+    if (fcntl(fd, F_SETLK, &lock) == -1) {
+        perror("Failed to release lock");
+        return -1;
+    }
+    return 0;
+}
+
+// Fungsi membaca buku dari file JSON
+int load_books_from_json(struct Book *books) {
+    int fd = open(BOOKS_DATA_FILE, O_RDONLY);
+    if (fd == -1) {
+        perror("Failed to open file");
+        return -1;
+    }
+
+    if (lock_file(fd) == -1) {
+        close(fd);
+        return -1;
+    }
+
+    // Membaca isi file
+    char buffer[8192];
+    ssize_t read_size = read(fd, buffer, sizeof(buffer) - 1);
+    if (read_size == -1) {
+        perror("Failed to read file");
+        unlock_file(fd);
+        close(fd);
+        return -1;
+    }
+    buffer[read_size] = '\0'; // Null-terminate string
+    close(fd);
+    unlock_file(fd);
+
+    // Parsing JSON
+    struct json_object *parsed_json = json_tokener_parse(buffer);
+    if (!parsed_json) {
+        fprintf(stderr, "Failed to parse JSON\n");
+        return -1;
+    }
+
+    // Loop untuk mengisi struct Book
+    size_t n_books = json_object_array_length(parsed_json);
+    for (size_t i = 0; i < n_books; i++) {
+        struct json_object *book_obj = json_object_array_get_idx(parsed_json, i);
+        books[i].id = json_object_get_int(json_object_object_get(book_obj, "id"));
+        strncpy(books[i].title, json_object_get_string(json_object_object_get(book_obj, "title")), sizeof(books[i].title));
+        strncpy(books[i].author, json_object_get_string(json_object_object_get(book_obj, "author")), sizeof(books[i].author));
+        strncpy(books[i].publisher, json_object_get_string(json_object_object_get(book_obj, "publisher")), sizeof(books[i].publisher));
+        books[i].year = json_object_get_int(json_object_object_get(book_obj, "year"));
+        books[i].pages = json_object_get_int(json_object_object_get(book_obj, "pages"));
+        strncpy(books[i].edition, json_object_get_string(json_object_object_get(book_obj, "edition")), sizeof(books[i].edition));
+        strncpy(books[i].description, json_object_get_string(json_object_object_get(book_obj, "description")), sizeof(books[i].description));
+        strncpy(books[i].status, json_object_get_string(json_object_object_get(book_obj, "status")), sizeof(books[i].status));
+    }
+
+    json_object_put(parsed_json); // Free memory
+    return n_books; // Jumlah buku yang dimuat
+}
+
+// Fungsi menyimpan buku ke file JSON
+int save_books_to_json(struct Book *books, int count) {
+    int fd = open(BOOKS_DATA_FILE, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+    if (fd == -1) {
+        perror("Failed to open file");
+        return -1;
+    }
+
+    if (lock_file(fd) == -1) {
+        close(fd);
+        return -1;
+    }
+
+    // Membuat array JSON
+    struct json_object *book_array = json_object_new_array();
     for (int i = 0; i < count; i++) {
-        cJSON *book_item = cJSON_CreateObject();
-        cJSON_AddNumberToObject(book_item, "id", books[i].id);
-        cJSON_AddStringToObject(book_item, "title", books[i].title);
-        cJSON_AddStringToObject(book_item, "author", books[i].author);
-        cJSON_AddStringToObject(book_item, "publisher", books[i].publisher);
-        cJSON_AddNumberToObject(book_item, "year", books[i].year);
-        cJSON_AddNumberToObject(book_item, "pages", books[i].pages);
-        cJSON_AddStringToObject(book_item, "edition", books[i].edition);
-        cJSON_AddStringToObject(book_item, "description", books[i].description);
-        cJSON_AddStringToObject(book_item, "status", books[i].status);
-        cJSON_AddItemToArray(book_array, book_item);
+        struct json_object *book_obj = json_object_new_object();
+        json_object_object_add(book_obj, "id", json_object_new_int(books[i].id));
+        json_object_object_add(book_obj, "title", json_object_new_string(books[i].title));
+        json_object_object_add(book_obj, "author", json_object_new_string(books[i].author));
+        json_object_object_add(book_obj, "publisher", json_object_new_string(books[i].publisher));
+        json_object_object_add(book_obj, "year", json_object_new_int(books[i].year));
+        json_object_object_add(book_obj, "pages", json_object_new_int(books[i].pages));
+        json_object_object_add(book_obj, "edition", json_object_new_string(books[i].edition));
+        json_object_object_add(book_obj, "description", json_object_new_string(books[i].description));
+        json_object_object_add(book_obj, "status", json_object_new_string(books[i].status));
+        json_object_array_add(book_array, book_obj);
     }
 
-    cJSON_AddItemToObject(json, "books", book_array);
+    // Menulis ke file
+    const char *json_str = json_object_to_json_string_ext(book_array, JSON_C_TO_STRING_PRETTY);
+    write(fd, json_str, strlen(json_str));
+    json_object_put(book_array); // Free memory
 
-    char *data = cJSON_Print(json);
-    FILE *file = fopen(filename, "w");
-    if (!file) {
-        perror("Error writing to file");
-        free(data);
-        cJSON_Delete(json);
-        return;
+    unlock_file(fd);
+    close(fd);
+    return 0;
+}
+
+// Menambahkan buku baru
+int add_book(struct Book new_book) {
+    struct Book books[100];
+    int book_count = load_books_from_json(books);
+    if (book_count == -1) {
+        return -1; // Error loading books
     }
-    fprintf(file, "%s", data);
-    fclose(file);
 
-    free(data);
-    cJSON_Delete(json);
+    // Tambahkan buku ke array
+    books[book_count] = new_book;
+    book_count++;
+
+    // Simpan kembali ke JSON
+    return save_books_to_json(books, book_count);
 }
 
-// Fungsi untuk menambahkan buku baru
-void add_book(struct Book *books, int *count, struct Book new_book) {
-    books[*count] = new_book;
-    (*count)++;
-}
+// Mengupdate buku berdasarkan ID
+int update_book(int id, struct Book updated_book) {
+    struct Book books[100];
+    int book_count = load_books_from_json(books);
+    if (book_count == -1) {
+        return -1; // Error loading books
+    }
 
-// Fungsi untuk menghapus buku berdasarkan ID
-void delete_book(struct Book *books, int *count, int id) {
-    for (int i = 0; i < *count; i++) {
+    // Cari buku berdasarkan ID
+    for (int i = 0; i < book_count; i++) {
         if (books[i].id == id) {
-            for (int j = i; j < *count - 1; j++) {
-                books[j] = books[j + 1];
+            books[i] = updated_book; // Update buku
+            return save_books_to_json(books, book_count);
+        }
+    }
+
+    return -1; // Buku tidak ditemukan
+}
+
+// Menghapus buku berdasarkan ID
+int delete_book(int id) {
+    struct Book books[100];
+    int book_count = load_books_from_json(books);
+    if (book_count == -1) {
+        return -1; // Error loading books
+    }
+
+    // Cari buku untuk dihapus
+    int found = 0;
+    for (int i = 0; i < book_count; i++) {
+        if (books[i].id == id) {
+            found = 1;
+            for (int j = i; j < book_count - 1; j++) {
+                books[j] = books[j + 1]; // Geser buku berikutnya
             }
-            (*count)--;
-            return;
+            book_count--;
+            break;
         }
     }
-    printf("Book with ID %d not found\n", id);
+
+    if (!found) {
+        return -1; // Buku tidak ditemukan
+    }
+
+    // Simpan kembali ke JSON
+    return save_books_to_json(books, book_count);
 }
 
-// Fungsi untuk mengupdate buku berdasarkan ID
-void update_book(struct Book *books, int count, int id, struct Book updated_book) {
-    for (int i = 0; i < count; i++) {
+// Mendapatkan buku berdasarkan ID
+struct Book *get_book_by_id(int id) {
+    static struct Book books[100]; // Static untuk return pointer
+    int book_count = load_books_from_json(books);
+    if (book_count == -1) {
+        return NULL; // Error loading books
+    }
+
+    // Cari buku berdasarkan ID
+    for (int i = 0; i < book_count; i++) {
         if (books[i].id == id) {
-            books[i] = updated_book;
-            return;
+            return &books[i];
         }
     }
-    printf("Book with ID %d not found\n", id);
+
+    return NULL; // Buku tidak ditemukan
 }
-
-
