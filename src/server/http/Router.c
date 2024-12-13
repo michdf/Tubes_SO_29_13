@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 
-struct Route * initRoute(char* key, void (*handler)(int)) {
+struct Route * initRoute(char* key, void (*handler)(int, struct HTTPRequest*)) {
 	struct Route * temp = (struct Route *) malloc(sizeof(struct Route));
 
 	temp->key = key;
@@ -23,7 +23,7 @@ void show_routes(struct Route* root)
     }
 }
 
-struct Route * addRoute(struct Route * root, char* key, void (*handler)(int)) {
+struct Route * addRoute(struct Route * root, char* key, void (*handler)(int, struct HTTPRequest*)) {
 	if (root == NULL) {
 		return initRoute(key, handler);
 	}

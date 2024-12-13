@@ -1,5 +1,26 @@
 #include "book.h"
 #include <string.h>
+#include <stdlib.h>
+
+// Membuat instance buku
+struct Book *book_constructor(int id, const char *title, const char *author, const char *publisher, 
+                              int year, int pages, const char *edition, const char *description, const char *status) {
+    struct Book *new_book = (struct Book *)malloc(sizeof(struct Book));
+
+    if (new_book == NULL) return NULL;
+
+    new_book->id = id;
+    strncpy(new_book->title, title, sizeof(new_book->title));
+    strncpy(new_book->author, author, sizeof(new_book->author));
+    strncpy(new_book->publisher, publisher, sizeof(new_book->publisher));
+    new_book->year = year;
+    new_book->pages = pages;
+    strncpy(new_book->edition, edition, sizeof(new_book->edition));
+    strncpy(new_book->description, description, sizeof(new_book->description));
+    strncpy(new_book->status, status, sizeof(new_book->status));
+
+    return new_book;
+}
 
 // Mencetak detail buku ke stdout
 void print_book(const struct Book *book) {

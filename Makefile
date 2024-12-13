@@ -1,8 +1,7 @@
 CC = gcc
-CFLAGS = -Wall -Wpedantic -Werror
-
-FILES = src/main.c src/server/Server.* src/server/Handler.* src/server/http/*
+CFLAGS = -Wall -Wpedantic -lcjson -ljson-c
+FILES = src/main.c src/server/Server.* src/server/Handler.* src/server/http/* src/data/models/book.* src/data/data_handler.*
 
 build:
 	mkdir -p dist
-	cc $(FILES) -o dist/webserver-tugas-besar
+	$(CC) $(FILES) $(CFLAGS) -o dist/webserver-tugas-besar

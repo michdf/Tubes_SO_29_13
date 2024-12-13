@@ -16,6 +16,9 @@ struct Book {
     char status[100];            // Status buku (contoh: "available" atau "borrowed")
 };
 
+struct Book *book_constructor(int id, const char *title, const char *author, const char *publisher, 
+                              int year, int pages, const char *edition, const char *description, const char *status);
+
 // Fungsi untuk mencetak detail buku
 void print_book(const struct Book *book);
 

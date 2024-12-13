@@ -18,6 +18,7 @@ struct HTTPRequest
 {
     int method;
     char *URI;
+    char *body;
     float HTTPVersion;
 };
 
