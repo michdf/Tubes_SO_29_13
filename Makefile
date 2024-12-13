@@ -1,5 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -Wpedantic -Werror
 
+FILES = src/main.c src/server/Server.* src/server/Handler.* src/server/http/*
+
 build:
-	cc src/server/Server.c src/server/Server.h src/server/test.c -o dist/webserver-tugas-besar
+	mkdir -p dist
+	cc $(FILES) -o dist/webserver-tugas-besar
