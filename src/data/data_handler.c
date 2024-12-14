@@ -86,7 +86,7 @@ int load_books_from_json(struct Book *books) {
     }
 
     // Loop untuk mengisi struct Book
-    size_t n_books = json_object_array_length(json_object_object_get(parsed_json, "books"));
+    size_t n_books = json_object_array_length(parsed_json);
     for (size_t i = 0; i < n_books; i++) {
         struct json_object *book_obj = json_object_array_get_idx(parsed_json, i);
         books[i].id = json_object_get_int(json_object_object_get(book_obj, "id"));
