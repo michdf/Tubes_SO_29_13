@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wpedantic -lcjson -ljson-c
-FILES = src/main.c src/server/Server.* src/server/Handler.* src/server/http/* src/data/models/book.* src/data/data_handler.* src/helper/Utils.*
+FILES = config/ServerConfig.h src/main.c src/server/Server.* src/server/Handler.* src/server/http/* src/data/models/Book.* src/data/DataHandler.* src/helper/Utils.*
 
 build:
 	mkdir -p dist

@@ -1,5 +1,5 @@
 /**
- * @file book.h
+ * @file Book.h
  * @author Micho Dhani Firmansyah (micho.dhani.tif423@polban.ac.id)
  * @brief File header untuk manajemen data buku dalam sistem perpustakaan
  * @date 2024-12-14

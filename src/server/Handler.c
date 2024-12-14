@@ -1,6 +1,13 @@
+/**
+ * @file Handler.c
+ * @author Yobel El'Roy Doloksaribu (royblend@protonmail.com)
+ * @brief Implementasi modul untuk menangani request HTTP pada server
+ * @date 2024-12-14
+ */
+
 #include "Handler.h"
-#include "../data/data_handler.h"
-#include "../data/models/book.h"
+#include "../data/DataHandler.h"
+#include "../data/models/Book.h"
 #include "http/HTTPRequest.h"
 #include "http/HTTPResponse.h"
 #include <cjson/cJSON.h>
@@ -9,7 +16,7 @@
 #include <string.h>
 #include <unistd.h>
 
-void responseError(int socket, int code, const char *message) {
+void response_error(int socket, int code, const char *message) {
   cJSON *jsonObj = cJSON_CreateObject();
   cJSON_AddNumberToObject(jsonObj, "status", code);
   cJSON_AddStringToObject(jsonObj, "message", message);
@@ -33,7 +40,7 @@ void responseError(int socket, int code, const char *message) {
   close(socket);
 }
 
-void handleNotFound(int socket, struct HTTPRequest *request, char *params) {
+void handle_not_found(int socket, struct HTTPRequest *request, char *params) {
   char *body = "<html><body><h1>404 Not Found</h1></body></html>";
   char *response = response_constructor(404, body);
 
@@ -47,7 +54,7 @@ void handleNotFound(int socket, struct HTTPRequest *request, char *params) {
   close(socket);
 }
 
-void handleRoot(int socket, struct HTTPRequest *request, char *params) {
+void handle_root(int socket, struct HTTPRequest *request, char *params) {
   char *body = "<html><body><h1>Tugas Besar API</h1></body></html>";
   char *response = response_constructor(200, body);
 
@@ -61,9 +68,9 @@ void handleRoot(int socket, struct HTTPRequest *request, char *params) {
   close(socket);
 }
 
-void handleAddBook(int socket, struct HTTPRequest *request, char *params) {
+void handle_add_book(int socket, struct HTTPRequest *request, char *params) {
   if (request->method != POST) {
-    responseError(socket, 405, "Method Not Allowed");
+    response_error(socket, 405, "Method Not Allowed");
     return;
   }
 
@@ -78,7 +85,7 @@ void handleAddBook(int socket, struct HTTPRequest *request, char *params) {
 
   // Add book to database
   if (requestBody == NULL) {
-    responseError(socket, 400, "Bad Request");
+    response_error(socket, 400, "Bad Request");
     return;
   }
 
@@ -96,7 +103,7 @@ void handleAddBook(int socket, struct HTTPRequest *request, char *params) {
       cJSON_GetObjectItem(requestBody, "status")->valuestring, &bookStatus);
 
   if (bookStatus < 0) {
-    responseError(socket, 400, "Bad Request");
+    response_error(socket, 400, "Bad Request");
     return;
   }
 
@@ -127,9 +134,9 @@ void handleAddBook(int socket, struct HTTPRequest *request, char *params) {
   close(socket);
 }
 
-void handleViewBooks(int socket, struct HTTPRequest *request, char *params) {
+void handle_view_books(int socket, struct HTTPRequest *request, char *params) {
   if (request->method != GET) {
-    responseError(socket, 405, "Method Not Allowed");
+    response_error(socket, 405, "Method Not Allowed");
     return;
   }
 
@@ -137,7 +144,7 @@ void handleViewBooks(int socket, struct HTTPRequest *request, char *params) {
   int book_count = load_books_from_json(books);
 
   if (book_count == -1) {
-    responseError(socket, 500, "Internal Server Error");
+    response_error(socket, 500, "Internal Server Error");
     return;
   }
 
@@ -170,9 +177,9 @@ void handleViewBooks(int socket, struct HTTPRequest *request, char *params) {
   close(socket);
 }
 
-void handleViewBookById(int socket, struct HTTPRequest *request, char *params) {
+void handle_view_book_by_id(int socket, struct HTTPRequest *request, char *params) {
   if (request->method != GET) {
-    responseError(socket, 405, "Method Not Allowed");
+    response_error(socket, 405, "Method Not Allowed");
     return;
   }
 
@@ -180,7 +187,7 @@ void handleViewBookById(int socket, struct HTTPRequest *request, char *params) {
   struct Book *book = get_book_by_id(book_id);
 
   if (book == NULL) {
-    responseError(socket, 404, "Book not found");
+    response_error(socket, 404, "Book not found");
     return;
   }
 
@@ -206,9 +213,9 @@ void handleViewBookById(int socket, struct HTTPRequest *request, char *params) {
   close(socket);
 }
 
-void handleUpdateBook(int socket, struct HTTPRequest *request, char *params) {
+void handle_update_book(int socket, struct HTTPRequest *request, char *params) {
   if (request->method != PUT) {
-    responseError(socket, 405, "Method Not Allowed");
+    response_error(socket, 405, "Method Not Allowed");
     return;
   }
 
@@ -216,7 +223,7 @@ void handleUpdateBook(int socket, struct HTTPRequest *request, char *params) {
 
   cJSON *requestBody = cJSON_Parse(request->body);
   if (requestBody == NULL) {
-    responseError(socket, 400, "Bad Request");
+    response_error(socket, 400, "Bad Request");
     return;
   }
 
@@ -233,13 +240,13 @@ void handleUpdateBook(int socket, struct HTTPRequest *request, char *params) {
       cJSON_GetObjectItem(requestBody, "status")->valuestring, &bookStatus);
   
   if (bookStatus < 0) {
-    responseError(socket, 400, "Bad Request");
+    response_error(socket, 400, "Bad Request");
     return;
   }
 
   if (update_book(book_id, *updated_book) == -1) {
     free(updated_book);
-    responseError(socket, 404, "Book not found");
+    response_error(socket, 404, "Book not found");
     return;
   }
 
@@ -261,16 +268,16 @@ void handleUpdateBook(int socket, struct HTTPRequest *request, char *params) {
   close(socket);
 }
 
-void handleDeleteBook(int socket, struct HTTPRequest *request, char *params) {
+void handle_delete_book(int socket, struct HTTPRequest *request, char *params) {
   if (request->method != DELETE) {
-    responseError(socket, 405, "Method Not Allowed");
+    response_error(socket, 405, "Method Not Allowed");
     return;
   }
 
   int book_id = atoi(params);
 
   if (delete_book(book_id) == -1) {
-    responseError(socket, 404, "Book not found");
+    response_error(socket, 404, "Book not found");
     return;
   }
 

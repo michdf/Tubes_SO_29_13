@@ -1,3 +1,10 @@
+/**
+ * @file Utils.c
+ * @author Yobel El'Roy Doloksaribu (royblend@protonmail.com)
+ * @brief Implementasi fungsi-fungsi bantuan
+ * @date 2024-12-14
+ */
+
 #include "Utils.h"
 #include <string.h>
 

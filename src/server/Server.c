@@ -1,3 +1,10 @@
+/**
+ * @file Server.c
+ * @author Yobel El'Roy Doloksaribu (royblend@protonmail.com)
+ * @brief Implementasi ADT Server untuk mengelola server socket
+ * @date 2024-12-14
+ */
+
 #include "Server.h"
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,3 +1,10 @@
+/**
+ * @file HTTPInfo.h
+ * @author Yobel El'Roy Doloksaribu (royblend@protonmail.com)
+ * @brief Implementasi ADT untuk informasi dan konstanta HTTP
+ * @date 2024-12-14
+ */
+
 #include "HTTPInfo.h"
 
 const char* HTTPResponseCodeToString(enum HTTPResponseCodes code) {

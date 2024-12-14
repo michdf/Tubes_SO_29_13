@@ -1,16 +1,23 @@
+/**
+ * @file HTTPRequest.c
+ * @author Yobel El'Roy Doloksaribu (royblend@protonmail.com)
+ * @brief Implementasi ADT untuk menangani request HTTP
+ * @date 2024-12-14
+ */
+
 #include "HTTPRequest.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void http_request_cleanup(struct HTTPRequest *request) {
+static void http_request_cleanup(struct HTTPRequest *request) {
   if (request) {
     free(request->body);
     free(request->URI);
   }
 }
 
-int method_select(char *method) {
+static int method_select(char *method) {
   if (strcmp(method, "GET") == 0) {
     return GET;
   } else if (strcmp(method, "POST") == 0) {

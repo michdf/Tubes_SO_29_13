@@ -1,5 +1,5 @@
 /**
- * @file data_handler.h
+ * @file DataHandler.h
  * @author Micho Dhani Firmansyah (micho.dhani.tif423@polban.ac.id)
  * @brief ADT untuk mengelola data buku
  * @date 2024-12-14
@@ -8,7 +8,7 @@
 #ifndef DATA_HANDLER_H
 #define DATA_HANDLER_H
 
-#include "models/book.h"
+#include "models/Book.h"
 
 /**
  * @brief Memuat data buku dari file JSON

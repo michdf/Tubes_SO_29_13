@@ -1,3 +1,10 @@
+/**
+ * @file HTTPResponse.h
+ * @author Yobel El'Roy Doloksaribu (royblend@protonmail.com)
+ * @brief Implementasi ADT untuk menangani response HTTP
+ * @date 2024-12-14
+ */
+
 #include "HTTPResponse.h"
 #include "HTTPInfo.h"
 #include <stdlib.h>

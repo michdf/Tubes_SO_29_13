@@ -1,9 +1,16 @@
+/**
+ * @file Router.c
+ * @author Yobel El'Roy Doloksaribu (royblend@protonmail.com)
+ * @brief Implementasi ADT untuk penanganan routing HTTP
+ * @date 2024-12-14
+ */
+
 #include "Router.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-struct Route * initRoute(char* key, void (*handler)(int, struct HTTPRequest*, char *params), int method) {
+struct Route * init_route(char* key, void (*handler)(int, struct HTTPRequest*, char *params), int method) {
 	struct Route * temp = (struct Route *) malloc(sizeof(struct Route));
 	temp->key = key;
     temp->handlers = malloc(sizeof(struct RouteHandler));
@@ -21,9 +28,9 @@ void addHandler(struct Route *route, void (*handler)(int, struct HTTPRequest*, c
     route->handlers[route->handler_count - 1].method = method;
 }
 
-struct Route * addRoute(struct Route * root, char* key, void (*handler)(int, struct HTTPRequest*, char *params), int method) {
+struct Route * add_route(struct Route * root, char* key, void (*handler)(int, struct HTTPRequest*, char *params), int method) {
     if (root == NULL) {
-        return initRoute(key, handler, method);
+        return init_route(key, handler, method);
     }
 
     if (strcmp(key, root->key) == 0) {
@@ -31,14 +38,14 @@ struct Route * addRoute(struct Route * root, char* key, void (*handler)(int, str
         addHandler(root, handler, method);
         return root;
     } else if (strcmp(key, root->key) > 0) {
-        root->right = addRoute(root->right, key, handler, method);
+        root->right = add_route(root->right, key, handler, method);
     } else {
-        root->left = addRoute(root->left, key, handler, method);
+        root->left = add_route(root->left, key, handler, method);
     }
     return root;
 }
 
-void* findHandler(struct Route* route, int method) {
+void* find_handler(struct Route* route, int method) {
     for (int i = 0; i < route->handler_count; i++) {
         if (route->handlers[i].method == method) {
             return route->handlers[i].handler;

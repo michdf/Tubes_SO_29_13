@@ -1,4 +1,4 @@
-#include "../config/server_config.h"
+#include "../config/ServerConfig.h"
 #include "server/Handler.h"
 #include "server/Server.h"
 #include "server/http/HTTPRequest.h"
@@ -11,14 +11,34 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-// Add this global variable at the top of main.c
+/**
+ * @brief Server global untuk penanganan signal
+ * 
+ * Variable ini digunakan untuk mengakses server saat
+ * menangani signal interupsi (SIGINT)
+ */
 static struct Server *global_server = NULL;
 
-// Add signal handler for SIGCHLD to prevent zombie processes
+/**
+ * @brief Handler untuk signal SIGCHLD
+ * 
+ * Fungsi ini mencegah terbentuknya proses zombie dengan
+ * melakukan wait pada child process yang telah selesai
+ * 
+ * @param sig Signal number
+ */
 void handle_sigchld(int sig) {
   while (waitpid(-1, NULL, WNOHANG) > 0);
 }
 
+/**
+ * @brief Handler untuk signal SIGINT (Ctrl+C)
+ * 
+ * Fungsi ini melakukan cleanup saat server dimatikan,
+ * menutup socket dan mengakhiri program dengan rapi
+ * 
+ * @param sig Signal number
+ */
 void handle_sigint(int sig) {
   printf("\nReceived SIGINT (Ctrl+C). Shutting down server...\n");
 
@@ -31,23 +51,46 @@ void handle_sigint(int sig) {
   exit(0);
 }
 
+/**
+ * @brief Fungsi utama server
+ * 
+ * Fungsi ini menjalankan loop utama server yang:
+ * 1. Menginisialisasi route-route yang tersedia
+ * 2. Menangani incoming connections
+ * 3. Melakukan fork untuk setiap koneksi baru
+ * 4. Memproses HTTP request
+ * 5. Mengirim response ke client
+ * 
+ * Proses parent:
+ * - Menerima koneksi baru
+ * - Melakukan fork untuk setiap koneksi
+ * - Menutup socket yang tidak digunakan
+ * 
+ * Proses child:
+ * - Memproses request HTTP
+ * - Mengirim response
+ * - Menutup koneksi
+ * - Exit
+ * 
+ * @param server Pointer ke struct Server
+ */
 void launch(struct Server *server) {
   char buffer[MAX_BUFFER_SIZE];
   int address_length = sizeof(server->address);
   int new_socket;
 
-  struct Route *route = initRoute("/", handleRoot, GET);
-  addRoute(route, "/books", handleViewBooks, GET);
-  addRoute(route, "/books", handleAddBook, POST);
-  addRoute(route, "/books/:id", handleViewBookById, GET);
-  addRoute(route, "/books/:id", handleUpdateBook, PUT);
-  addRoute(route, "/books/:id", handleDeleteBook, DELETE);
+  struct Route *route = init_route("/", handle_root, GET);
+  add_route(route, "/books", handle_view_books, GET);
+  add_route(route, "/books", handle_add_book, POST);
+  add_route(route, "/books/:id", handle_view_book_by_id, GET);
+  add_route(route, "/books/:id", handle_update_book, PUT);
+  add_route(route, "/books/:id", handle_delete_book, DELETE);
 
   handle_sigchld(SIGCHLD);
   signal(SIGINT, handle_sigint);
 
   while (true) {
-    printf("WAITING FOR CONNECTION...\n");
+    printf("MENUNGGU KONEKSI...\n");
     new_socket = accept(server->socket, (struct sockaddr *)&server->address,
                         (socklen_t *)&address_length);
 
@@ -64,17 +107,17 @@ void launch(struct Server *server) {
 
       struct Route *found = search(route, request.URI);
       if (found != NULL) {
-        void (*handler)(int, struct HTTPRequest *, char *params) = findHandler(found, request.method);
+        void (*handler)(int, struct HTTPRequest *, char *params) = find_handler(found, request.method);
         char *params = extract_params(request.URI, found->key);
         if (handler != NULL) {
           char *params = extract_params(found->key, request.URI);
           handler(new_socket, &request, params);
           free(params);
         } else {
-          responseError(new_socket, 405, "Method Not Allowed");
+          response_error(new_socket, 405, "Method Not Allowed");
         }
       } else {
-        handleNotFound(new_socket, &request, NULL);
+        handle_not_found(new_socket, &request, NULL);
       }
 
       close(new_socket);
@@ -90,6 +133,16 @@ void launch(struct Server *server) {
   }
 }
 
+/**
+ * @brief Fungsi main
+ * 
+ * Fungsi ini:
+ * 1. Menginisialisasi server dengan konfigurasi default
+ * 2. Menyimpan reference ke server global
+ * 3. Memulai server
+ * 
+ * @return int Status exit program
+ */
 int main(void) {
   struct Server server =
       server_constructor(AF_INET, SOCK_STREAM, 0, INADDR_ANY, WEBSERVER_PORT,

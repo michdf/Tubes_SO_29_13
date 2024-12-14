@@ -1,4 +1,11 @@
-#include "book.h"
+/**
+ * @file Book.c
+ * @author Micho Dhani Firmansyah (micho.dhani.tif423@polban.ac.id)
+ * @brief Implementasi ADT untuk manajemen data buku dalam sistem perpustakaan
+ * @date 2024-12-14
+ */
+
+#include "Book.h"
 #include "../../helper/Utils.h"
 #include <json-c/json.h>
 #include <stdio.h>
