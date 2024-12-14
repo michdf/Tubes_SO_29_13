@@ -177,14 +177,29 @@ int update_book(int id, struct Book updated_book) {
     }
 
     // Cari buku berdasarkan ID
+    int found = 0;
     for (int i = 0; i < book_count; i++) {
         if (books[i].id == id) {
-            books[i] = updated_book; // Update buku
-            return save_books_to_json(books, book_count);
+            // Pertahankan ID asli
+            int original_id = books[i].id;
+            
+            // Update data buku dengan data baru
+            books[i] = updated_book;
+            
+            // Pastikan ID tetap sama dengan yang dicari
+            books[i].id = original_id;
+            
+            found = 1;
+            break;
         }
     }
 
-    return -1; // Buku tidak ditemukan
+    if (!found) {
+        return -1; // Buku tidak ditemukan
+    }
+
+    // Simpan perubahan ke file JSON
+    return save_books_to_json(books, book_count);
 }
 
 // Menghapus buku berdasarkan ID

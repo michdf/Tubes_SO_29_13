@@ -2,18 +2,26 @@
 #define BOOK_H
 
 #include <stdio.h>
+#include <stdbool.h>
+
+#define MAX_TITLE_LEN 100
+#define MAX_AUTHOR_LEN 100
+#define MAX_PUBLISHER_LEN 100
+#define MAX_EDITION_LEN 100
+#define MAX_DESC_LEN 1000
+#define MAX_STATUS_LEN 100
 
 // Struktur untuk merepresentasikan buku
 struct Book {
     int id;                      // ID unik buku
-    char title[100];             // Judul buku
-    char author[100];            // Nama penulis
-    char publisher[100];         // Nama penerbit
+    char title[MAX_TITLE_LEN];             // Judul buku
+    char author[MAX_AUTHOR_LEN];            // Nama penulis
+    char publisher[MAX_PUBLISHER_LEN];         // Nama penerbit
     int year;                    // Tahun penerbitan
     int pages;                   // Jumlah halaman
-    char edition[100];           // Edisi buku
-    char description[1000];      // Deskripsi buku
-    char status[100];            // Status buku (contoh: "available" atau "borrowed")
+    char edition[MAX_EDITION_LEN];           // Edisi buku
+    char description[MAX_DESC_LEN];      // Deskripsi buku
+    char status[MAX_STATUS_LEN];            // Status buku (contoh: "available" atau "borrowed")
 };
 
 struct Book *book_constructor(int id, const char *title, const char *author, const char *publisher, 
