@@ -12,9 +12,13 @@ WebSocket Bookstore Server adalah server berbasis **C** yang menggunakan **WebSo
 ---
 
 ## 🚀 **Fitur Utama**  
-1. **CRUD Data Buku:**
-   - **ADD:** Menambahkan buku baru ke dalam daftar.
-   - **LIST:** Menampilkan semua buku yang tersedia.
+1. Tampilan Home pada web
+2. Tampilan Web Not Found (ERROR 404)
+3. Storage file berbasis JSON
+4. Menambah Data buku ke Storage File
+5. Mengedit Data buku yang ada di Storage file
+6. Menghapus Data buku yang ada di Storage file
+7. Melakukan View berdasarkan ID buku yang ada di Storage file
 
 ---
 
@@ -24,32 +28,38 @@ webserver/
 ├── src/                      
 │   ├── main.c                
 │   ├── server/               
-│   │   ├── handler.c
-│   │   ├── handler.h
-│   │   ├── server.c
-│   │   ├── server.h          
-│   │   └──  http/             
+│   │   ├── Handler.c
+│   │   ├── Handler.h
+│   │   ├── Server.c
+│   │   ├── Server.h          
+│   │   └──  http/ 
+│   │       ├── HTTPInfo.c
+│   │       ├── HTTPInfo.h                   
 │   │       ├── HTTPRequest.c
 │   │       ├── HTTPRequest.h       
 │   │       ├── HTTPResponse.c
 │   │       ├── HTTPResponse.h 
-│   │       ├── router.c      
-│   │       └── router.h      
+│   │       ├── Router.c      
+│   │       └── Router.h 
+│   │
+│   ├── helper/               
+│   │   ├── Utils.c
+│   │   ├── Utils.h     
 │   │       
 │   └── data/                 
-│       ├── data_handler.c    
-│       ├── data_handler.h    
+│       ├── DataHandler.c    
+│       ├── DataHandler.h    
 │       └── models/           
-│           ├── book.c        
-│           └── book.h        
+│           ├── Book.c        
+│           └── Book.h        
 ├── tests/                    
 │   └── sample.html 
 |                         
 ├── config/                   
-│   └── server_config.h      
+│   └── ServerConfig.h      
 | 
 ├── dist/                   
-│   └── webserver-tugas-besar.exe
+│   └── webserver-tugas-besar    [Dibuat saat Compile]
 │                     
 ├── Makefile                  
 └── README.md                 
