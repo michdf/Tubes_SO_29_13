@@ -62,7 +62,6 @@ void handleRoot(int socket, struct HTTPRequest *request, char *params) {
 }
 
 void handleAddBook(int socket, struct HTTPRequest *request, char *params) {
-  printf("%d\n", request->method);
   if (request->method != POST) {
     responseError(socket, 405, "Method Not Allowed");
     return;
@@ -79,12 +78,12 @@ void handleAddBook(int socket, struct HTTPRequest *request, char *params) {
 
   // Add book to database
   if (requestBody == NULL) {
-    printf("ISI request body: %s\n", request->body);
     responseError(socket, 400, "Bad Request");
     return;
   }
 
   struct Book *new_book;
+  int bookStatus = 0;
   new_book = book_constructor(
       cJSON_GetObjectItem(requestBody, "id")->valueint,
       cJSON_GetObjectItem(requestBody, "title")->valuestring,
@@ -94,7 +93,12 @@ void handleAddBook(int socket, struct HTTPRequest *request, char *params) {
       cJSON_GetObjectItem(requestBody, "pages")->valueint,
       cJSON_GetObjectItem(requestBody, "edition")->valuestring,
       cJSON_GetObjectItem(requestBody, "description")->valuestring,
-      cJSON_GetObjectItem(requestBody, "status")->valuestring);
+      cJSON_GetObjectItem(requestBody, "status")->valuestring, &bookStatus);
+
+  if (bookStatus < 0) {
+    responseError(socket, 400, "Bad Request");
+    return;
+  }
 
   add_book(*new_book);
   free(new_book);
@@ -203,7 +207,6 @@ void handleViewBookById(int socket, struct HTTPRequest *request, char *params) {
 }
 
 void handleUpdateBook(int socket, struct HTTPRequest *request, char *params) {
-  printf("%d\n", request->method);
   if (request->method != PUT) {
     responseError(socket, 405, "Method Not Allowed");
     return;
@@ -217,6 +220,7 @@ void handleUpdateBook(int socket, struct HTTPRequest *request, char *params) {
     return;
   }
 
+  int bookStatus = 0;
   struct Book *updated_book = book_constructor(
       cJSON_GetObjectItem(requestBody, "id")->valueint,
       cJSON_GetObjectItem(requestBody, "title")->valuestring,
@@ -226,9 +230,13 @@ void handleUpdateBook(int socket, struct HTTPRequest *request, char *params) {
       cJSON_GetObjectItem(requestBody, "pages")->valueint,
       cJSON_GetObjectItem(requestBody, "edition")->valuestring,
       cJSON_GetObjectItem(requestBody, "description")->valuestring,
-      cJSON_GetObjectItem(requestBody, "status")->valuestring);
+      cJSON_GetObjectItem(requestBody, "status")->valuestring, &bookStatus);
+  
+  if (bookStatus < 0) {
+    responseError(socket, 400, "Bad Request");
+    return;
+  }
 
-  printf("AMAN\n");
   if (update_book(book_id, *updated_book) == -1) {
     free(updated_book);
     responseError(socket, 404, "Book not found");
