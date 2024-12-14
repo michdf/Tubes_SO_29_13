@@ -1,6 +1,6 @@
 /**
  * @file DataHandler.h
- * @author Micho Dhani Firmansyah (micho.dhani.tif423@polban.ac.id)
+ * @author Micho Dhani Firmansyah (michodhani01@gmail.com)
  * @brief ADT untuk mengelola data buku
  * @date 2024-12-14
  */

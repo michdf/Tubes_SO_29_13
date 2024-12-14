@@ -1,6 +1,6 @@
 /**
  * @file Book.c
- * @author Micho Dhani Firmansyah (micho.dhani.tif423@polban.ac.id)
+ * @author Micho Dhani Firmansyah (michodhani01@gmail.com)
  * @brief Implementasi ADT untuk manajemen data buku dalam sistem perpustakaan
  * @date 2024-12-14
  */

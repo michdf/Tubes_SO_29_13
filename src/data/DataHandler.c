@@ -1,6 +1,6 @@
 /**
  * @file DataHandler.h
- * @author Micho Dhani Firmansyah (micho.dhani.tif423@polban.ac.id)
+ * @author Micho Dhani Firmansyah (michodhani01@gmail.com)
  * @brief Implementasi ADT untuk mengelola data buku
  * @date 2024-12-14
  */
@@ -49,11 +49,6 @@ int load_books_from_json(struct Book *books) {
         return -1;
     }
 
-    if (lock_file(fd) == -1) {
-        close(fd);
-        return -1;
-    }
-
     char buffer[8192] = {0};
     ssize_t read_size = read(fd, buffer, sizeof(buffer) - 1);
     if (read_size == -1) {
@@ -82,7 +77,6 @@ int load_books_from_json(struct Book *books) {
 
     if (!parsed_json) {
         fprintf(stderr, "Failed to parse JSON\n");
-        unlock_file(fd);
         close(fd);
         return -1;
     }
@@ -103,11 +97,6 @@ int load_books_from_json(struct Book *books) {
 
     cJSON_Delete(parsed_json);
 
-    if (unlock_file(fd) == -1) {
-        close(fd);
-        return -1;
-    }
-
     close(fd);
     return n_books;
 }
@@ -116,11 +105,6 @@ int save_books_to_json(struct Book *books, int count) {
     int fd = open(BOOKS_DATA_FILE, O_WRONLY | O_TRUNC | O_CREAT, 0644);
     if (fd == -1) {
         perror("Failed to open file");
-        return -1;
-    }
-
-    if (lock_file(fd) == -1) {
-        close(fd);
         return -1;
     }
 
@@ -144,25 +128,53 @@ int save_books_to_json(struct Book *books, int count) {
     free(json_str);
     cJSON_Delete(book_array);
 
-    unlock_file(fd);
     close(fd);
     return 0;
 }
 
 int add_book(struct Book new_book) {
+    int fd = open(BOOKS_DATA_FILE, O_RDWR | O_CREAT, 0644);
+    if (fd == -1) {
+        perror("Failed to open file");
+        return -1;
+    }
+
+    if (lock_file(fd) == -1) {
+        close(fd);
+        return -1;
+    }
+
     struct Book books[100];
     int book_count = load_books_from_json(books);
     if (book_count == -1) {
+        unlock_file(fd);
+        close(fd);
         return -1;
     }
 
     books[book_count] = new_book;
     book_count++;
 
-    return save_books_to_json(books, book_count);
+    int result = save_books_to_json(books, book_count);
+
+    unlock_file(fd);
+    close(fd);
+
+    return result;
 }
 
 int update_book(int id, struct Book updated_book) {
+    int fd = open(BOOKS_DATA_FILE, O_RDWR | O_CREAT, 0644);
+    if (fd == -1) {
+        perror("Failed to open file");
+        return -1;
+    }
+
+    if (lock_file(fd) == -1) {
+        close(fd);
+        return -1;
+    }
+
     struct Book books[100];
     int book_count = load_books_from_json(books);
     if (book_count == -1) {
@@ -181,13 +193,30 @@ int update_book(int id, struct Book updated_book) {
     }
 
     if (!found) {
+        unlock_file(fd);
+        close(fd);
         return -1;
     }
 
-    return save_books_to_json(books, book_count);
+    int result = save_books_to_json(books, book_count);
+
+    unlock_file(fd);
+    close(fd);
+    return result;
 }
 
 int delete_book(int id) {
+    int fd = open(BOOKS_DATA_FILE, O_RDWR | O_CREAT, 0644);
+    if (fd == -1) {
+        perror("Failed to open file");
+        return -1;
+    }
+
+    if (lock_file(fd) == -1) {
+        close(fd);
+        return -1;
+    }
+
     struct Book books[100];
     int book_count = load_books_from_json(books);
     if (book_count == -1) {
@@ -207,34 +236,72 @@ int delete_book(int id) {
     }
 
     if (!found) {
+        unlock_file(fd);
+        close(fd);
         return -1;
     }
 
-    return save_books_to_json(books, book_count);
+    int result = save_books_to_json(books, book_count);
+
+    unlock_file(fd);
+    close(fd);
+    return result;
 }
 
 struct Book *get_book_by_id(int id) {
-    static struct Book books[100];
-    int book_count = load_books_from_json(books);
-    if (book_count == -1) {
+    int fd = open(BOOKS_DATA_FILE, O_RDWR | O_CREAT, 0644);
+    if (fd == -1) {
+        perror("Failed to open file");
         return NULL;
     }
 
+    if (lock_file(fd) == -1) {
+        close(fd);
+        return NULL;
+    }
+
+    static struct Book books[100];
+    int book_count = load_books_from_json(books);
+    if (book_count == -1) {
+        unlock_file(fd);
+        close(fd);
+        return NULL;
+    }
+
+    struct Book *result = NULL;
     for (int i = 0; i < book_count; i++) {
         if (books[i].id == id) {
-            return &books[i];
+            result = &books[i];
+            break;
         }
     }
 
-    return NULL;
+    unlock_file(fd);
+    close(fd);
+    return result;
 }
 
 struct Book *get_books() {
-    static struct Book books[100];
-    int book_count = load_books_from_json(books);
-    if (book_count == -1) {
+    int fd = open(BOOKS_DATA_FILE, O_RDWR | O_CREAT, 0644);
+    if (fd == -1) {
+        perror("Failed to open file");
         return NULL;
     }
 
+    if (lock_file(fd) == -1) {
+        close(fd);
+        return NULL;
+    }
+
+    static struct Book books[100];
+    int book_count = load_books_from_json(books);
+    if (book_count == -1) {
+        unlock_file(fd);
+        close(fd);
+        return NULL;
+    }
+
+    unlock_file(fd);
+    close(fd);
     return books;
 }
