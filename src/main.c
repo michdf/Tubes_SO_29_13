@@ -16,8 +16,7 @@ static struct Server *global_server = NULL;
 
 // Add signal handler for SIGCHLD to prevent zombie processes
 void handle_sigchld(int sig) {
-  while (waitpid(-1, NULL, WNOHANG) > 0)
-    ;
+  while (waitpid(-1, NULL, WNOHANG) > 0);
 }
 
 void handle_sigint(int sig) {
@@ -40,7 +39,9 @@ void launch(struct Server *server) {
   struct Route *route = initRoute("/", handleRoot, GET);
   addRoute(route, "/books", handleViewBooks, GET);
   addRoute(route, "/books", handleAddBook, POST);
+  addRoute(route, "/books/:id", handleViewBookById, GET);
   addRoute(route, "/books/:id", handleUpdateBook, PUT);
+  addRoute(route, "/books/:id", handleDeleteBook, DELETE);
 
   handle_sigchld(SIGCHLD);
   signal(SIGINT, handle_sigint);
@@ -63,8 +64,7 @@ void launch(struct Server *server) {
 
       struct Route *found = search(route, request.URI);
       if (found != NULL) {
-        void (*handler)(int, struct HTTPRequest *, char *params) =
-            findHandler(found, request.method);
+        void (*handler)(int, struct HTTPRequest *, char *params) = findHandler(found, request.method);
         char *params = extract_params(request.URI, found->key);
         if (handler != NULL) {
           char *params = extract_params(found->key, request.URI);

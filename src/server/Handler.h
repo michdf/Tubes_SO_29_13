@@ -6,7 +6,9 @@ void responseError(int socket, int code, const char *message);
 void handleNotFound(int socket, struct HTTPRequest* request, char *params);
 void handleRoot(int socket, struct HTTPRequest* request, char *params);
 void handleViewBooks(int socket, struct HTTPRequest* request, char *params);
+void handleViewBookById(int socket, struct HTTPRequest* request, char *params);
 void handleAddBook(int socket, struct HTTPRequest* request, char *params);
 void handleUpdateBook(int socket, struct HTTPRequest* request, char *params);
+void handleDeleteBook(int socket, struct HTTPRequest* request, char *params);
 
 #endif

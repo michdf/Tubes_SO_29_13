@@ -1,18 +1,6 @@
 #ifndef HTTPRequest_h
 #define HTTPRequest_h
-
-enum HTTPMethods
-{
-    GET,
-    POST,
-    PUT,
-    HEAD,
-    PATCH,
-    DELETE,
-    CONNECT,
-    OPTIONS,
-    TRACE
-};
+#include "HTTPInfo.h"
 
 struct HTTPRequest
 {

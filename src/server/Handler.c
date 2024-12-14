@@ -123,7 +123,84 @@ void handleAddBook(int socket, struct HTTPRequest *request, char *params) {
   close(socket);
 }
 
-void handleViewBooks(int socket, struct HTTPRequest *request, char *params) {}
+void handleViewBooks(int socket, struct HTTPRequest *request, char *params) {
+  if (request->method != GET) {
+    responseError(socket, 405, "Method Not Allowed");
+    return;
+  }
+
+  struct Book books[100];
+  int book_count = load_books_from_json(books);
+
+  if (book_count == -1) {
+    responseError(socket, 500, "Internal Server Error");
+    return;
+  }
+
+  cJSON *bookArray = cJSON_CreateArray();
+
+  for (int i = 0; i < book_count; i++) {
+    cJSON *bookObj = cJSON_CreateObject();
+    cJSON_AddNumberToObject(bookObj, "id", books[i].id);
+    cJSON_AddStringToObject(bookObj, "title", books[i].title);
+    cJSON_AddStringToObject(bookObj, "author", books[i].author);
+    cJSON_AddStringToObject(bookObj, "publisher", books[i].publisher);
+    cJSON_AddNumberToObject(bookObj, "year", books[i].year);
+    cJSON_AddNumberToObject(bookObj, "pages", books[i].pages);
+    cJSON_AddStringToObject(bookObj, "edition", books[i].edition);
+    cJSON_AddStringToObject(bookObj, "description", books[i].description);
+    cJSON_AddStringToObject(bookObj, "status", books[i].status);
+
+    cJSON_AddItemToArray(bookArray, bookObj);
+  }
+
+  char *responseBody = cJSON_PrintUnformatted(bookArray);
+
+  char *httpResponse = response_constructor(200, responseBody);
+
+  write(socket, httpResponse, strlen(httpResponse));
+
+  cJSON_Delete(bookArray);
+  free(responseBody);
+  free(httpResponse);
+  close(socket);
+}
+
+void handleViewBookById(int socket, struct HTTPRequest *request, char *params) {
+  if (request->method != GET) {
+    responseError(socket, 405, "Method Not Allowed");
+    return;
+  }
+
+  int book_id = atoi(params);
+  struct Book *book = get_book_by_id(book_id);
+
+  if (book == NULL) {
+    responseError(socket, 404, "Book not found");
+    return;
+  }
+
+  cJSON *response = cJSON_CreateObject();
+  cJSON_AddNumberToObject(response, "id", book->id);
+  cJSON_AddStringToObject(response, "title", book->title);
+  cJSON_AddStringToObject(response, "author", book->author);
+  cJSON_AddStringToObject(response, "publisher", book->publisher);
+  cJSON_AddNumberToObject(response, "year", book->year);
+  cJSON_AddNumberToObject(response, "pages", book->pages);
+  cJSON_AddStringToObject(response, "edition", book->edition);
+  cJSON_AddStringToObject(response, "description", book->description);
+  cJSON_AddStringToObject(response, "status", book->status);
+
+  char *responseBody = cJSON_PrintUnformatted(response);
+  char *httpResponse = response_constructor(200, responseBody);
+
+  write(socket, httpResponse, strlen(httpResponse));
+
+  free(responseBody);
+  free(httpResponse);
+  cJSON_Delete(response);
+  close(socket);
+}
 
 void handleUpdateBook(int socket, struct HTTPRequest *request, char *params) {
   printf("%d\n", request->method);
@@ -173,5 +250,33 @@ void handleUpdateBook(int socket, struct HTTPRequest *request, char *params) {
   free(httpResponse);
   cJSON_Delete(response);
   cJSON_Delete(requestBody);
+  close(socket);
+}
+
+void handleDeleteBook(int socket, struct HTTPRequest *request, char *params) {
+  if (request->method != DELETE) {
+    responseError(socket, 405, "Method Not Allowed");
+    return;
+  }
+
+  int book_id = atoi(params);
+
+  if (delete_book(book_id) == -1) {
+    responseError(socket, 404, "Book not found");
+    return;
+  }
+
+  cJSON *response = cJSON_CreateObject();
+  cJSON_AddNumberToObject(response, "status", 200);
+  cJSON_AddStringToObject(response, "message", "Book deleted successfully");
+
+  char *responseBody = cJSON_PrintUnformatted(response);
+  char *httpResponse = response_constructor(200, responseBody);
+
+  write(socket, httpResponse, strlen(httpResponse));
+
+  free(responseBody);
+  free(httpResponse);
+  cJSON_Delete(response);
   close(socket);
 }

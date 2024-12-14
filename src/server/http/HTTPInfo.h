@@ -1,0 +1,39 @@
+#ifndef HTTPINFO_H
+#define HTTPINFO_H
+
+enum HTTPMethods
+{
+    GET,
+    POST,
+    PUT,
+    HEAD,
+    PATCH,
+    DELETE,
+    CONNECT,
+    OPTIONS,
+    TRACE
+};
+
+enum HTTPResponseCodes
+{
+    HTTP_OK = 200,
+    HTTP_CREATED = 201,
+    HTTP_ACCEPTED = 202,
+    HTTP_NO_CONTENT = 204,
+    HTTP_MOVED_PERMANENTLY = 301,
+    HTTP_FOUND = 302,
+    HTTP_NOT_MODIFIED = 304,
+    HTTP_BAD_REQUEST = 400,
+    HTTP_UNAUTHORIZED = 401,
+    HTTP_FORBIDDEN = 403,
+    HTTP_NOT_FOUND = 404,
+    HTTP_METHOD_NOT_ALLOWED = 405,
+    HTTP_INTERNAL_SERVER_ERROR = 500,
+    HTTP_NOT_IMPLEMENTED = 501,
+    HTTP_BAD_GATEWAY = 502,
+    HTTP_SERVICE_UNAVAILABLE = 503
+};
+
+const char* HTTPResponseCodeToString(enum HTTPResponseCodes code);
+
+#endif

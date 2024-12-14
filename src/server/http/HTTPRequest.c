@@ -29,6 +29,8 @@ int method_select(char *method) {
     return OPTIONS;
   } else if (strcmp(method, "TRACE") == 0) {
     return TRACE;
+  } else {
+    return -1;
   }
 }
 
@@ -60,6 +62,11 @@ struct HTTPRequest http_request_constructor(char *request_string) {
 
     char *URI = strtok(NULL, " ");
     if (URI) {
+      size_t len = strlen(URI);
+      // Remove trailing '/' if it exists and length > 1 (keep root '/')
+      if (len > 1 && URI[len-1] == '/') {
+          URI[len-1] = '\0';
+      }
       request.URI = strdup(URI); // Make a copy
     }
 

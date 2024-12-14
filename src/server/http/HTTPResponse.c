@@ -1,4 +1,5 @@
 #include "HTTPResponse.h"
+#include "HTTPInfo.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -13,7 +14,7 @@ char *response_constructor(int status, char *body){
         return NULL;
     }
 
-    snprintf(response, sizeof(char) * MAX_BUFFER_SIZE, "HTTP/1.1 %d OK\nContent-Type: text/html\n\n", status);
+    snprintf(response, sizeof(char) * MAX_BUFFER_SIZE, "HTTP/1.1 %d %s\nContent-Type: text/html\n\n", status, HTTPResponseCodeToString(status));
     strcat(response, body);
 
     if(response == NULL){
